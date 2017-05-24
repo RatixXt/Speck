@@ -9,6 +9,16 @@ using namespace std;
 
 #define ROUNDS 27
 
+extern "C"
+{
+	void speck_round_asm(uint32_t& x_, uint32_t& y_, uint32_t k_);
+}
+
+extern "C"
+{
+	void speck_round_dec_asm(uint32_t& x_, uint32_t& y_, uint32_t k_);
+}
+
 static void speck_round(uint32_t& x_, uint32_t& y_, uint32_t k_)
 {
 	uint8_t a = 8;
@@ -21,7 +31,7 @@ static void speck_round(uint32_t& x_, uint32_t& y_, uint32_t k_)
 	__asm {
 		
 		MOV cl, a
-		ROR x, cl  // x ROR a
+		ROR x, cl  // x - цикл. сдвиг вправо на альфа
 
 		MOV eax, x  // x + y
 		ADD eax, y
@@ -30,7 +40,7 @@ static void speck_round(uint32_t& x_, uint32_t& y_, uint32_t k_)
 		MOV x, eax
 		
 		MOV cl, b
-		ROL y, cl // y ROL b
+		ROL y, cl // y - цикл. сдвиг влево на бета
 
 		XOR eax, y // y = x XOR y
 		MOV y, eax
@@ -40,7 +50,7 @@ static void speck_round(uint32_t& x_, uint32_t& y_, uint32_t k_)
 	y_ = y;
 }
 
-static void speck_round_dec(uint32_t& x_, uint32_t& y_, const uint32_t& k_)
+static void speck_round_dec(uint32_t& x_, uint32_t& y_, const uint32_t k_)
 {
 	uint8_t a = 8;
 	uint8_t b = 3;
@@ -56,7 +66,7 @@ static void speck_round_dec(uint32_t& x_, uint32_t& y_, const uint32_t& k_)
 			MOV y, eax
 	
 			MOV cl, b
-			ROR y, cl  // y ROR b
+			ROR y, cl  // x - цикл. сдвиг вправо на бета
 
 			MOV eax, x
 			XOR eax, k // x = x XOR k
@@ -65,7 +75,7 @@ static void speck_round_dec(uint32_t& x_, uint32_t& y_, const uint32_t& k_)
 			MOV x, eax  
 
 			MOV cl, a
-			ROL x, cl // x ROL a
+			ROL x, cl // y - цикл. сдвиг влево на альфа
 	}
 	x_ = x;
 	y_ = y;
@@ -82,7 +92,7 @@ void speck_setup(const uint32_t key[4]
 	a[2] = key[3];
 	key_schedule[0] = b;
 	for (unsigned i = 0; i < ROUNDS - 1; i++) {
-		speck_round(a[i % 3], b, i);
+		speck_round_asm(a[i % 3], b, i);
 		key_schedule[i + 1] = b;
 	}
 }
@@ -95,7 +105,7 @@ void speck_encrypt(const uint32_t plaintext[2]
 	ciphertext[0] = plaintext[0];
 	ciphertext[1] = plaintext[1];
 	for (unsigned i = 0; i < ROUNDS; i++) {
-		speck_round(ciphertext[1], ciphertext[0], key_schedule[i]);
+		speck_round_asm(ciphertext[1], ciphertext[0], key_schedule[i]);
 	}
 }
 
@@ -107,7 +117,7 @@ void speck_decrypt(const uint32_t ciphertext[2]
 	decrypted[0] = ciphertext[0];
 	decrypted[1] = ciphertext[1];
 	for (unsigned i = ROUNDS; i > 0; i--) {
-		speck_round_dec(decrypted[1], decrypted[0], key_schedule[i - 1]);
+		speck_round_dec_asm(decrypted[1], decrypted[0], key_schedule[i - 1]);
 	}
 }
 
