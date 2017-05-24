@@ -21,7 +21,7 @@ static void speck_round(uint32_t& x_, uint32_t& y_, uint32_t k_)
 	__asm {
 		
 		MOV cl, a
-		ROR x, cl  // x - „ˆ„y„{„|. „ƒ„t„r„y„s „r„„‚„p„r„€ „~„p „p„|„„†„p
+		ROR x, cl  // x ROR a
 
 		MOV eax, x  // x + y
 		ADD eax, y
@@ -30,7 +30,7 @@ static void speck_round(uint32_t& x_, uint32_t& y_, uint32_t k_)
 		MOV x, eax
 		
 		MOV cl, b
-		ROL y, cl // y - „ˆ„y„{„|. „ƒ„t„r„y„s „r„|„u„r„€ „~„p „q„u„„„p
+		ROL y, cl // y ROL b
 
 		XOR eax, y // y = x XOR y
 		MOV y, eax
@@ -56,7 +56,7 @@ static void speck_round_dec(uint32_t& x_, uint32_t& y_, const uint32_t& k_)
 			MOV y, eax
 	
 			MOV cl, b
-			ROR y, cl  // x - „ˆ„y„{„|. „ƒ„t„r„y„s „r„„‚„p„r„€ „~„p „q„u„„„p
+			ROR y, cl  // y ROR b
 
 			MOV eax, x
 			XOR eax, k // x = x XOR k
@@ -65,7 +65,7 @@ static void speck_round_dec(uint32_t& x_, uint32_t& y_, const uint32_t& k_)
 			MOV x, eax  
 
 			MOV cl, a
-			ROL x, cl // y - „ˆ„y„{„|. „ƒ„t„r„y„s „r„|„u„r„€ „~„p „p„|„„†„p
+			ROL x, cl // x ROL a
 	}
 	x_ = x;
 	y_ = y;
