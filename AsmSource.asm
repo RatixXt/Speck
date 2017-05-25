@@ -2,7 +2,11 @@
 .MODEL FLAT, C
 .STACK
 .DATA
+;-----------Local data------------------------------
+intFormat   BYTE "x = 0x%08x y = 0x%08x k = 0x%08x", 10, 13, 0
 .CODE
+;-----------External usage--------------------------
+EXTRN  printf : proc;// we'll use printf
 ;-----------Function definitions--------------------
 speck_round_asm PROC ;speck_round_asm(uint32_t& x_, uint32_t& y_, uint32_t k_)
 push ebp
@@ -11,27 +15,37 @@ mov ebp, esp ;
 mov eax, [ebp+8]; &x_
 mov eax, [eax]; eax = x_
 
-mov ebx, [ebp+12]; &y_
-mov ebx, [ebx]; ebx = y
+mov edx, [ebp+12]; &y_
+mov edx, [edx]; edx = y ()
 
-mov ecx, [ebp+16]; ecx = k_
+mov ecx, [ebp+16]; ecx = &k_
+mov ecx, [ecx]; ebx = k_
 
-ROR eax, 8  ; x - „ˆ„y„{„|. „ƒ„t„r„y„s „r„„‚„p„r„€ „~„p „p„|„„†„p
+;push ecx
+;push ebx
+;push eax
+;lea edi, intFormat
+;push edi
+;call printf
+;add esp,16
 
-ADD eax, ebx ; x = x + y
+
+ROR eax, 8  ; x - â€â‚¬â€yâ€{â€|. â€Ñ“â€tâ€râ€yâ€s â€râ€Ğƒâ€â€šâ€pâ€râ€Ğ‚ â€~â€p â€pâ€|â€Ğ‹â€â€ â€p
+
+ADD eax, edx ; x = x + y
 
 XOR eax, ecx ; x = x XOR k
 
-ROL ebx, 3 ; y - „ˆ„y„{„|. „ƒ„t„r„y„s „r„|„u„r„€ „~„p „q„u„„„p
+ROL edx, 3 ; y - â€â‚¬â€yâ€{â€|. â€Ñ“â€tâ€râ€yâ€s â€râ€|â€uâ€râ€Ğ‚ â€~â€p â€qâ€uâ€â€â€p
 
-XOR ebx, eax ; y = x XOR y
+XOR edx, eax ; y = x XOR y
 
 
-mov edx, [esp+8]; &x_
-mov [edx], eax; x_ = x
+mov edi, [esp+8]; &x_
+mov [edi], eax; x_ = x
 
-mov edx, [esp+12]; &y_
-mov [edx], ebx; y_ = y
+mov edi, [esp+12]; &y_
+mov [edi], edx; y_ = y
 
 pop ebp ;
 ret
@@ -45,26 +59,27 @@ mov ebp, esp ;
 mov eax, [ebp+8]; &x_
 mov eax, [eax]; eax = x_
 
-mov ebx, [ebp+12]; &y_
-mov ebx, [ebx]; ebx = y
+mov edx, [ebp+12]; &y_
+mov edx, [edx]; ebx = y
 
-mov ecx, [ebp+16]; ecx = k_
+mov ecx, [ebp+16]; ecx = &k_
+mov ecx, [ecx]; ecx = k
 
-XOR ebx, eax ; y = x XOR y
+XOR edx, eax ; y = x XOR y
 	
-ROR ebx, 3  ; y - „ˆ„y„{„|. „ƒ„t„r„y„s „r„„‚„p„r„€ „~„p „q„u„„„p
+ROR edx, 3  ; y - â€â‚¬â€yâ€{â€|. â€Ñ“â€tâ€râ€yâ€s â€râ€Ğƒâ€â€šâ€pâ€râ€Ğ‚ â€~â€p â€qâ€uâ€â€â€p
 
 XOR eax, ecx ; x = x XOR k
 
-SUB eax, ebx ; x = x - y 
+SUB eax, edx ; x = x - y 
 
-ROL eax, 8 ; x - „ˆ„y„{„|. „ƒ„t„r„y„s „r„|„u„r„€ „~„p „p„|„„†„p
+ROL eax, 8 ; x - â€â‚¬â€yâ€{â€|. â€Ñ“â€tâ€râ€yâ€s â€râ€|â€uâ€râ€Ğ‚ â€~â€p â€pâ€|â€Ğ‹â€â€ â€p
 
-mov edx, [esp+8]; &x_
-mov [edx], eax; x_ = x
+mov edi, [esp+8]; &x_
+mov [edi], eax; x_ = x
 
-mov edx, [esp+12]; &y_
-mov [edx], ebx; y_ = y
+mov edi, [esp+12]; &y_
+mov [edi], edx; y_ = y
 
 pop ebp ;
 ret
